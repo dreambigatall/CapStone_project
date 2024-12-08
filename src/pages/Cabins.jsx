@@ -3,6 +3,7 @@ import Heading from "../ui/Heading";
 import Row from "../ui/Row";
 import { getCars } from "../services/apiCars";
 import CabinTable from "../features/cabins/CabinTable";
+import AddCabin from "../features/cabins/AddCabin";
 
 function Cabins() {
   useEffect(function(){
@@ -16,6 +17,7 @@ function Cabins() {
     </Row>
     <Row>
       <CabinTable/>
+      <AddCabin/>
     </Row>
     </>
   );

@@ -1,13 +1,11 @@
 import styled from "styled-components";
 
-const Table = styled.div`
-  border: 1px solid var(--color-grey-200);
-
-  font-size: 1.4rem;
-  background-color: var(--color-grey-0);
-  border-radius: 7px;
-  overflow: hidden;
-`;
+import Spinner from "../../ui/Spinner";
+import CabinRow from "./CabinRow";
+//import { useCabins } from "./useCabins";
+import {useCars} from "./useCabines"
+import Table from "../../ui/Table";
+import Menus from "../../ui/Menus";
 
 const TableHeader = styled.header`
   display: grid;
@@ -23,28 +21,31 @@ const TableHeader = styled.header`
   color: var(--color-grey-600);
   padding: 1.6rem 2.4rem;
 `;
-import React from 'react'
-import { useCars } from "./useCabines";
-import CabinRow from "./CabinRow";
 
-export default function CabinTable() {
-  const {isLoading, cars} = useCars()
-  if(isLoading) return <h1>loadding</h1>
-  console.log(cars)
-    return (
-     <Table role="table">
-      <TableHeader role="row">
-        <div></div>
-        <div>Cares</div>
-        <div>Capacity</div>
-        <div>Price</div>
-        <div>Discount</div>
-        <div></div>
-      </TableHeader>
-      {cars.map((car)=>(
-        <CabinRow cabin={car} key={car.id}/>
-      ))}
-     </Table>
-  )
+function CabinTable() {
+  const { isLoading, cars } = useCars();
+
+  if (isLoading) return <Spinner />;
+
+  return (
+    <Menus>
+      <Table columns="0.6fr 1.8fr 2.2fr 1fr 1fr 1fr">
+        <Table.Header>
+          <div></div>
+          <div>Cabin</div>
+          <div>Capacity</div>
+          <div>Price</div>
+          <div>Discount</div>
+          <div></div>
+        </Table.Header>
+
+        <Table.Body
+          data={cars}
+          render={(cars) => <CabinRow cabin={cars} key={cars.id} />}
+        />
+      </Table>
+    </Menus>
+  );
 }
 
+export default CabinTable;

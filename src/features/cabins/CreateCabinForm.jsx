@@ -69,9 +69,9 @@ function CreateCabinForm({ cabinToEdit = {} }) {
       <FormRow label="Maximum capacity" error={errors?.maxCapcity?.message}>
         <Input
           type="number"
-          id="maxCapacity"
+          id="maxCapcity"
           disabled={isWorking}
-          {...register("maxCapacity", {
+          {...register("maxCapcity", {
             required: "This field is required",
             min: {
               value: 1,
@@ -113,14 +113,14 @@ function CreateCabinForm({ cabinToEdit = {} }) {
 
       <FormRow
         label="Description for website"
-        error={errors?.description?.message}
+        error={errors?.discription?.message}
       >
         <Textarea
-          type="number"
-          id="description"
+          type="text"
+          id="discription"
           defaultValue=""
           disabled={isWorking}
-          {...register("description", {
+          {...register("discription", {
             required: "This field is required",
           })}
         />
