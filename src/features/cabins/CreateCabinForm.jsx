@@ -13,7 +13,7 @@ import { useEditCar } from "./useEditCar";
 import { useCreateCars } from "./useCreateCar";
 
 
-function CreateCabinForm({ cabinToEdit = {} }) {
+function CreateCabinForm({ cabinToEdit = {} , onCloseModal}) {
   const { isCreating, createCar} = useCreateCars();
   const { isEditing, editCar } = useEditCar();
   const isWorking = isCreating || isEditing;
@@ -27,14 +27,18 @@ function CreateCabinForm({ cabinToEdit = {} }) {
   const { errors } = formState;
 
   function onSubmit(data) {
-    const image = typeof data.image === "string" ? data.image : data.image[0];
-
+    const image = typeof data.image === "string" ? data.image : data.image[0].name;
+     console.log("hellow",data.image[0].name);
+     console.log(image)
     if (isEditSession)
       editCar(
         { newCabinData: { ...data, image }, id: editId },
         {
           onSuccess: (data) => {
             reset();
+            onCloseModal?.();
+
+            
           },
         }
       );
@@ -44,6 +48,8 @@ function CreateCabinForm({ cabinToEdit = {} }) {
         {
           onSuccess: (data) => {
             reset();
+            onCloseModal?.();
+
           },
         }
       );
@@ -54,7 +60,11 @@ function CreateCabinForm({ cabinToEdit = {} }) {
   }
 
   return (
-    <Form onSubmit={handleSubmit(onSubmit, onError)}>
+    // <Form onSubmit={handleSubmit(onSubmit, onError)}>
+    <Form
+    onSubmit={handleSubmit(onSubmit, onError)}
+    type={onCloseModal ? "modal" : "regular"}
+  >
       <FormRow label="Cabin name" error={errors?.name?.message}>
         <Input
           type="text"
@@ -138,10 +148,10 @@ function CreateCabinForm({ cabinToEdit = {} }) {
 
       <FormRow>
         {/* type is an HTML attribute! */}
-        <Button variation="secondary" type="reset">
+        <Button variation="secondary" type="reset" onClick={()=>onCloseModal()}>
           Cancel
         </Button>
-        <Button disabled={isWorking}>
+        <Button disabled={isWorking} >
           {isEditSession ? "Edit cabin" : "Create new cabin"}
         </Button>
       </FormRow>
