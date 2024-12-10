@@ -62,7 +62,7 @@ const Empty = styled.p`
 
 const TableContext = createContext();
 
-function Table({ columns, children }) {
+function Table({ columns, children }) {//the coluem props is used as a context for the childe componet and it is the css rule wich describe how much columne we create
   return (
     <TableContext.Provider value={{ columns }}>
       <StyledTable role="table">{children}</StyledTable>

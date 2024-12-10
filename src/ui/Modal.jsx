@@ -58,8 +58,8 @@ const ModalContext = createContext();
 function Modal({ children }) {
   const [openName, setOpenName] = useState("");
 
-  const close = () => setOpenName("");
-  const open = setOpenName;
+  const close = () => setOpenName("");//the close method is used to make the openName stat into empty string
+  const open = setOpenName;//this just set the openName to the name we pass to the Modal.Open "open" props
 
   return (
     <ModalContext.Provider value={{ openName, close, open }}>
@@ -71,7 +71,7 @@ function Modal({ children }) {
 function Open({ children, opens: opensWindowName }) {
   const { open } = useContext(ModalContext);
 
-  return cloneElement(children, { onClick: () => open(opensWindowName) });
+  return cloneElement(children, { onClick: () => open(opensWindowName) }); {/*in this the elemnt inside this Modal.Open comonet we dont pass the function wich open the modal to that we use the cloneElement  wich clone the elemnt and pass a props of onclick and e pass the method with ther uniq name  */}
 }
 
 function Window({ children, name }) {
