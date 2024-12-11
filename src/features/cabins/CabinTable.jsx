@@ -1,3 +1,5 @@
+/* eslint-disable */
+
 import styled from "styled-components";
 
 import Spinner from "../../ui/Spinner";
@@ -19,7 +21,7 @@ const TableHeader = styled.header`
   letter-spacing: 0.4px;
   font-weight: 600;
   color: var(--color-grey-600);
-  padding: 1.6rem 2.4rem;
+  padding: 1.6rem 2.4rem; 
 `;
 
 function CabinTable() {
@@ -43,6 +45,7 @@ function CabinTable() {
           data={cars}
           render={(cars) => <CabinRow cabin={cars} key={cars.id} />}
         />
+        {/*her is the implimentation of the render props now the Body commponet is understnd wht it render */}
       </Table>
     </Menus>
   );
