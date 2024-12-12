@@ -4,6 +4,8 @@ import Row from "../ui/Row";
 import { getCars } from "../services/apiCars";
 import CabinTable from "../features/cabins/CabinTable";
 import AddCabin from "../features/cabins/AddCabin";
+import TableOperations from "../ui/TableOperations";
+import CabinTableOperations from "../features/cabins/CabinTableOperations";
 
 function Cabins() {
   useEffect(function(){
@@ -13,7 +15,8 @@ function Cabins() {
     <>
     <Row type="horizontal">
       <Heading as="h1">All cabins</Heading>
-      <p>TEST</p>
+      {/* <p>TEST</p> */}
+      <CabinTableOperations/>
     </Row>
     <Row>
       <CabinTable/>
