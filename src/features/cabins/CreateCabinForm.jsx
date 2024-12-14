@@ -76,12 +76,12 @@ function CreateCabinForm({ cabinToEdit = {} , onCloseModal}) {
         />
       </FormRow>
 
-      <FormRow label="Maximum capacity" error={errors?.maxCapcity?.message}>
+      <FormRow label="Maximum capacity" error={errors?.maxCapacity?.message}>
         <Input
           type="number"
-          id="maxCapcity"
+          id="maxCapacity"
           disabled={isWorking}
-          {...register("maxCapcity", {
+          {...register("maxCapacity", {
             required: "This field is required",
             min: {
               value: 1,

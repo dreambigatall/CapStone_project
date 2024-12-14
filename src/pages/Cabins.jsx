@@ -4,7 +4,6 @@ import Row from "../ui/Row";
 import { getCars } from "../services/apiCars";
 import CabinTable from "../features/cabins/CabinTable";
 import AddCabin from "../features/cabins/AddCabin";
-import TableOperations from "../ui/TableOperations";
 import CabinTableOperations from "../features/cabins/CabinTableOperations";
 
 function Cabins() {

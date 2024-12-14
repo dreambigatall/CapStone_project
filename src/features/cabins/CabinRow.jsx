@@ -322,7 +322,7 @@ function CabinRow({ cabin }) {
   const {
     id: cabinId,
     name,
-    maxCapcity,
+    maxCapacity,
     regularPrice,
     discount,
     image,
@@ -332,7 +332,7 @@ function CabinRow({ cabin }) {
   function handleDuplicate() {
     createCar({
       name: `Copy of ${name}`,
-      maxCapcity,
+      maxCapacity,
       regularPrice,
       discount,
       image,
@@ -357,7 +357,7 @@ function CabinRow({ cabin }) {
       </Modal>
 
       <Cabin>{name}</Cabin>
-      <div>Fits up to {maxCapcity} guests</div>
+      <div>Fits up to {maxCapacity} guests</div>
       <Price>{formatCurrency(regularPrice)}</Price>
       {discount ? (
         <Discount>{formatCurrency(discount)}</Discount>

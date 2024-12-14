@@ -1,6 +1,6 @@
 import { supabaseUrl } from "../services/supabase";
 
-const imageUrl = `${supabaseUrl}/storage/v1/object/public/cabin-images/`;
+const imageUrl = `${supabaseUrl}/storage/v1/object/public/car-image/`;
 
 export const cabins = [
   {
@@ -50,6 +50,7 @@ export const cabins = [
   },
   {
     name: "006",
+    
     maxCapacity: 6,
     regularPrice: 800,
     discount: 100,
