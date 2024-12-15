@@ -115,8 +115,8 @@ function BookingDataBox({ booking }) {
     hasBreakfast,
     observations,
     isPaid,
-    guests: { fullName: guestName, email, country, countryFlag, nationalID },
-    cabins: { name: cabinName },
+    renters: { fullName: guestName, email, country, countryFlag, nationalID },
+    cars: { name: cabinName },
   } = booking;
 
   return (

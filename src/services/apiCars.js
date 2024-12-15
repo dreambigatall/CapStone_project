@@ -60,6 +60,58 @@ export async function getCars(){
 //     return data;
 
 // }
+///////////////////////////////////////////////////
+// export async function createEditCar(newCar, id) {
+//     const isFile = newCar.image instanceof File;
+
+//     if (!newCar.image) {
+//         console.error("No image provided:", newCar.image);
+//         throw new Error("The image is missing.");
+//     }
+
+//     // Generate a unique file name using UUID
+//     const fileName = isFile
+//         ? `${Math.random()}-${uuidv4()}.${newCar.image.name.split('.').pop()}`
+//         : null;
+
+//     const imagePath = isFile
+//         ? `${supabaseUrl}/storage/v1/object/public/car-image/${fileName}`
+//         : newCar.image; // Use the URL directly if it's not a File
+
+//     // Create or edit car in the database
+//     let query = supabase.from("cars");
+
+//     // A) Insert new car
+//     if (!id) query = query.insert([{ ...newCar, image: imagePath }]);
+
+//     // B) Update existing car
+//     if (id) query = query.update({ ...newCar, image: imagePath }).eq("id", id);
+
+//     const { data, error } = await query.select().single();
+//     if (error) {
+//         console.error("Error creating/editing car:", error);
+//         throw new Error("Car could not be created or updated.");
+//     }
+
+//     // Upload the image to Supabase storage if it's a file
+//     if (isFile) {
+//         const { error: storageError } = await supabase.storage
+//             .from("car-image")
+//             .upload(fileName, newCar.image);
+
+//         if (storageError) {
+//             // Delete the car record if the image upload fails
+//             await supabase.from("cars").delete().eq("id", data.id);
+//             console.error("Supabase upload error:", storageError);
+//             throw new Error("Image could not be uploaded, and the car was not created.");
+//         }
+//     }
+
+//     return data; // Return the car data
+// }
+////////////////////////
+//import { v4 as uuidv4 } from "uuid";
+//import { supabase } from "../supabaseClient";
 
 export async function createEditCar(newCar, id) {
     const isFile = newCar.image instanceof File;
@@ -69,47 +121,59 @@ export async function createEditCar(newCar, id) {
         throw new Error("The image is missing.");
     }
 
-    // Generate a unique file name using UUID
-    const fileName = isFile
-        ? `${Math.random()}-${uuidv4()}.${newCar.image.name.split('.').pop()}`
-        : null;
+    let imagePath = newCar.image; // Default to existing image URL
+    let fileName;
 
-    const imagePath = isFile
-        ? `${supabaseUrl}/storage/v1/object/public/car-image/${fileName}`
-        : newCar.image; // Use the URL directly if it's not a File
-
-    // Create or edit car in the database
-    let query = supabase.from("cars");
-
-    // A) Insert new car
-    if (!id) query = query.insert([{ ...newCar, image: imagePath }]);
-
-    // B) Update existing car
-    if (id) query = query.update({ ...newCar, image: imagePath }).eq("id", id);
-
-    const { data, error } = await query.select().single();
-    if (error) {
-        console.error("Error creating/editing car:", error);
-        throw new Error("Car could not be created or updated.");
-    }
-
-    // Upload the image to Supabase storage if it's a file
     if (isFile) {
+        // Generate a unique file name
+        fileName = `${uuidv4()}-${newCar.image.name}`;
+        console.log("Generated file name:", fileName);
+
+        // Try uploading the file
         const { error: storageError } = await supabase.storage
             .from("car-image")
             .upload(fileName, newCar.image);
 
         if (storageError) {
-            // Delete the car record if the image upload fails
-            await supabase.from("cars").delete().eq("id", data.id);
-            console.error("Supabase upload error:", storageError);
-            throw new Error("Image could not be uploaded, and the car was not created.");
+            console.error("Supabase storage upload error:", storageError);
+            throw new Error("Image could not be uploaded.");
         }
+
+        // Get the public URL
+        const { data: publicUrlData, error: publicUrlError } = supabase.storage
+            .from("car-image")
+            .getPublicUrl(fileName);
+
+        if (publicUrlError) {
+            console.error("Error getting public URL:", publicUrlError);
+            throw new Error("Could not retrieve public URL for the image.");
+        }
+
+        imagePath = publicUrlData.publicUrl;
+        console.log("Uploaded image path:", imagePath);
     }
 
-    return data; // Return the car data
+    // Insert or update the car in the database
+    let query = supabase.from("cars");
+
+    if (!id) {
+        query = query.insert([{ ...newCar, image: imagePath }]);
+    } else {
+        query = query.update({ ...newCar, image: imagePath }).eq("id", id);
+    }
+
+    const { data, error } = await query.select().single();
+
+    if (error) {
+        console.error("Error creating/updating car:", error);
+        throw new Error("Car could not be created or updated.");
+    }
+
+    return data;
 }
 
+
+/////////////////////////////////////
 export async function deleteCar(id) {
     const { data, error } = await supabase.from("cars").delete().eq("id", id);
   

@@ -26,35 +26,41 @@ function CreateCabinForm({ cabinToEdit = {} , onCloseModal}) {
   });
   const { errors } = formState;
 
+  
   function onSubmit(data) {
-    const image = typeof data.image === "string" ? data.image : data.image[0].name;
-     console.log("hellow",data.image[0].name);
-     console.log(image)
-    if (isEditSession)
+    // Ensure we handle the image correctly
+    const image = typeof data.image === "string" ? data.image : data.image[0];
+  
+    if (!image) {
+      console.error("Image is missing or invalid.");
+      return;
+    }
+  
+    console.log("Uploading Image:", image);
+  
+    if (isEditSession) {
       editCar(
         { newCabinData: { ...data, image }, id: editId },
         {
-          onSuccess: (data) => {
+          onSuccess: () => {
             reset();
             onCloseModal?.();
-
-            
           },
         }
       );
-    else
+    } else {
       createCar(
-        { ...data, image: image },
+        { ...data, image },
         {
-          onSuccess: (data) => {
+          onSuccess: () => {
             reset();
             onCloseModal?.();
-
           },
         }
       );
+    }
   }
-
+  
   function onError(errors) {
     // console.log(errors);
   }
@@ -127,10 +133,10 @@ function CreateCabinForm({ cabinToEdit = {} , onCloseModal}) {
       >
         <Textarea
           type="text"
-          id="discription"
+          id="description"
           defaultValue=""
           disabled={isWorking}
-          {...register("discription", {
+          {...register("description", {
             required: "This field is required",
           })}
         />
