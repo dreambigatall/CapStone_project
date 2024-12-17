@@ -7,8 +7,12 @@ import Table from "../../ui/Table";
 import { formatCurrency } from "../../utils/helpers";
 import { formatDistanceFromNow } from "../../utils/helpers";
 import Menus from "../../ui/Menus";
-import { HiArchiveBox, HiArrowDownOnSquare, HiEye } from "react-icons/hi2";
+import { HiArchiveBox, HiArrowDownOnSquare, HiEye, HiTrash } from "react-icons/hi2";
 import { useNavigate } from "react-router-dom";
+import { useCheckout } from "../check-in-out/useCheckout";
+import Modal from "../../ui/Modal";
+import ConfirmDelete from "../../ui/ConfirmDelete";
+import { useDeleteBooking } from "../check-in-out/useDeleting";
 const Cabin = styled.div`
   font-size: 1.6rem;
   font-weight: 600;
@@ -56,6 +60,8 @@ function BookingRow({
     "checked-out": "silver",
   };
    const navigate= useNavigate();
+   const {checkout, isCheckingOut} = useCheckout();
+   const {deleteBookings,isLoadingToDeleteBooking} = useDeleteBooking();
   return (
     <Table.Row>
       <Cabin>{cabinName}</Cabin>
@@ -81,6 +87,7 @@ function BookingRow({
       <Tag type={statusToTagName[status]}>{status.replace("-", " ")}</Tag>
 
       <Amount>{formatCurrency(totalPrice)}</Amount>
+      <Modal>
       <Menus.Menu>
          <Menus.Toggle id={bookingId}/>
          <Menus.List id={bookingId}>
@@ -93,10 +100,29 @@ function BookingRow({
           </Menus.Button>
           
            }
+           {
+            status === 'checked-in' && <Menus.Button icon={<HiArchiveBox/>} onClick={()=>checkout(bookingId)} >
+              checked-out
+            
+           </Menus.Button>
+           }
+
+                <Modal.Open opens="delete">
+                <Menus.Button icon={<HiTrash />}>Delete</Menus.Button>
+              </Modal.Open>
          </Menus.List>
           
          
       </Menus.Menu>
+      <Modal.Window name="delete">
+              <ConfirmDelete
+                resourceName="car"
+                disabled={isLoadingToDeleteBooking}
+                onConfirm={() => deleteBookings(bookingId)}
+              />
+            </Modal.Window>
+
+      </Modal>
     </Table.Row>
   );
 }
