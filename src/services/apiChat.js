@@ -24,3 +24,12 @@ export async function fetchUserData(userIds) {
     return data;
   }
   
+  export async function writeChatMessage(message) {
+    const { data, error } = await supabase.from("chat").insert(message);
+  
+    if (error) {
+      throw new Error("Error writing chat message: " + error.message);
+    }
+  
+    return data;
+  }

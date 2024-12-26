@@ -33,6 +33,7 @@ function BookingDetail() {
 
   const moveBack = useMoveBack();
   if(isLoading) return <Spinner/>
+  if(!booking) return <h1>Booking not found</h1>;
   const statusToTagName = {
     unconfirmed: "blue",
     "checked-in": "green",

@@ -1,59 +1,143 @@
 import styled from "styled-components";
 import DashboardBox from "./DashboardBox";
+import Heading from "../../ui/Heading";
+import {
+  Area,
+  AreaChart,
+  CartesianGrid,
+  ResponsiveContainer,
+  Tooltip,
+  XAxis,
+  YAxis,
+} from "recharts";
+import { useDarkMode } from "../../context/DarkModeContext";
+import { eachDayOfInterval, format, isSameDay, subDays } from "date-fns";
 
+/**
+ * Styled component to customize the SalesChart container.
+ * Inherits styles from DashboardBox and applies custom grid styling for charts.
+ */
 const StyledSalesChart = styled(DashboardBox)`
   grid-column: 1 / -1;
 
-  /* Hack to change grid line colors */
+  /* Custom styles for grid lines in the chart */
   & .recharts-cartesian-grid-horizontal line,
   & .recharts-cartesian-grid-vertical line {
     stroke: var(--color-grey-300);
   }
 `;
 
-const fakeData = [
-  { label: "Jan 09", totalSales: 480, extrasSales: 20 },
-  { label: "Jan 10", totalSales: 580, extrasSales: 100 },
-  { label: "Jan 11", totalSales: 550, extrasSales: 150 },
-  { label: "Jan 12", totalSales: 600, extrasSales: 50 },
-  { label: "Jan 13", totalSales: 700, extrasSales: 150 },
-  { label: "Jan 14", totalSales: 800, extrasSales: 150 },
-  { label: "Jan 15", totalSales: 700, extrasSales: 200 },
-  { label: "Jan 16", totalSales: 650, extrasSales: 200 },
-  { label: "Jan 17", totalSales: 600, extrasSales: 300 },
-  { label: "Jan 18", totalSales: 550, extrasSales: 100 },
-  { label: "Jan 19", totalSales: 700, extrasSales: 100 },
-  { label: "Jan 20", totalSales: 800, extrasSales: 200 },
-  { label: "Jan 21", totalSales: 700, extrasSales: 100 },
-  { label: "Jan 22", totalSales: 810, extrasSales: 50 },
-  { label: "Jan 23", totalSales: 950, extrasSales: 250 },
-  { label: "Jan 24", totalSales: 970, extrasSales: 100 },
-  { label: "Jan 25", totalSales: 900, extrasSales: 200 },
-  { label: "Jan 26", totalSales: 950, extrasSales: 300 },
-  { label: "Jan 27", totalSales: 850, extrasSales: 200 },
-  { label: "Jan 28", totalSales: 900, extrasSales: 100 },
-  { label: "Jan 29", totalSales: 800, extrasSales: 300 },
-  { label: "Jan 30", totalSales: 950, extrasSales: 200 },
-  { label: "Jan 31", totalSales: 1100, extrasSales: 300 },
-  { label: "Feb 01", totalSales: 1200, extrasSales: 400 },
-  { label: "Feb 02", totalSales: 1250, extrasSales: 300 },
-  { label: "Feb 03", totalSales: 1400, extrasSales: 450 },
-  { label: "Feb 04", totalSales: 1500, extrasSales: 500 },
-  { label: "Feb 05", totalSales: 1400, extrasSales: 600 },
-  { label: "Feb 06", totalSales: 1450, extrasSales: 400 },
-];
+/**
+ * SalesChart Component
+ * 
+ * This component displays a sales chart for a given number of days using Recharts.
+ * It shows both total sales and extras sales based on the provided bookings data.
+ *
+ * @param {Object} props - The props for the component.
+ * @param {Array} props.bookings - List of booking objects containing `created_at`, `totalPrice`, and `extrasPrice`.
+ * @param {number} props.numDays - Number of days to display on the chart.
+ *
+ * @returns {JSX.Element} A styled area chart displaying sales data.
+ */
+function SalesChart({ bookings, numDays }) {
+  // Access the current dark mode status from the context
+  const { isDarkMode } = useDarkMode();
 
-const isDarkMode = true;
-const colors = isDarkMode
-  ? {
-      totalSales: { stroke: "#4f46e5", fill: "#4f46e5" },
-      extrasSales: { stroke: "#22c55e", fill: "#22c55e" },
-      text: "#e5e7eb",
-      background: "#18212f",
-    }
-  : {
-      totalSales: { stroke: "#4f46e5", fill: "#c7d2fe" },
-      extrasSales: { stroke: "#16a34a", fill: "#dcfce7" },
-      text: "#374151",
-      background: "#fff",
+  /**
+   * Generate an array of all dates within the interval of the last `numDays`.
+   * This is used to map and group booking data.
+   */
+  const allDates = eachDayOfInterval({
+    start: subDays(new Date(), numDays - 1), // Start from `numDays` ago
+    end: new Date(), // End at today
+  });
+
+  /**
+   * Process bookings data to calculate sales totals for each day in the interval.
+   * - `label`: Formatted date string for the X-axis.
+   * - `totalSales`: Sum of total sales for bookings on the same day.
+   * - `extrasSales`: Sum of extras sales for bookings on the same day.
+   */
+  const data = allDates.map((date) => {
+    return {
+      label: format(date, "MMM dd"), // Format date for display
+      totalSales: bookings
+        .filter((booking) => isSameDay(date, new Date(booking.created_at)))
+        .reduce((acc, cur) => acc + cur.totalPrice, 0), // Sum of total sales
+      extrasSales: bookings
+        .filter((booking) => isSameDay(date, new Date(booking.created_at)))
+        .reduce((acc, cur) => acc + cur.extrasPrice, 0), // Sum of extras sales
     };
+  });
+
+  /**
+   * Define chart colors based on the current theme (dark mode or light mode).
+   */
+  const colors = isDarkMode
+    ? {
+        totalSales: { stroke: "#4f46e5", fill: "#4f46e5" }, // Indigo
+        extrasSales: { stroke: "#22c55e", fill: "#22c55e" }, // Green
+        text: "#e5e7eb", // Light text for dark background
+        background: "#18212f", // Dark tooltip background
+      }
+    : {
+        totalSales: { stroke: "#4f46e5", fill: "#c7d2fe" }, // Light Indigo
+        extrasSales: { stroke: "#16a34a", fill: "#dcfce7" }, // Light Green
+        text: "#374151", // Dark text for light background
+        background: "#fff", // White tooltip background
+      };
+
+  return (
+    <StyledSalesChart>
+      {/* Chart Heading with date range */}
+      <Heading as="h2">
+        Sales from {format(allDates.at(0), "MMM dd yyyy")} &mdash;{" "}
+        {format(allDates.at(-1), "MMM dd yyyy")}
+      </Heading>
+
+      {/* Responsive container to ensure chart resizes with its parent */}
+      <ResponsiveContainer height={300} width="100%">
+        <AreaChart data={data}>
+          {/* X-axis with formatted date labels */}
+          <XAxis
+            dataKey="label"
+            tick={{ fill: colors.text }}
+            tickLine={{ stroke: colors.text }}
+          />
+          {/* Y-axis displaying sales with dollar sign */}
+          <YAxis
+            unit="$"
+            tick={{ fill: colors.text }}
+            tickLine={{ stroke: colors.text }}
+          />
+          {/* Grid lines for visual guidance */}
+          <CartesianGrid strokeDasharray="4" />
+          {/* Tooltip with theme-based background */}
+          <Tooltip contentStyle={{ backgroundColor: colors.background }} />
+          {/* Area chart for total sales */}
+          <Area
+            dataKey="totalSales"
+            type="monotone"
+            stroke={colors.totalSales.stroke}
+            fill={colors.totalSales.fill}
+            strokeWidth={2}
+            name="Total sales"
+            unit="$"
+          />
+          {/* Area chart for extras sales */}
+          <Area
+            dataKey="extrasSales"
+            type="monotone"
+            stroke={colors.extrasSales.stroke}
+            fill={colors.extrasSales.fill}
+            strokeWidth={2}
+            name="Extras sales"
+            unit="$"
+          />
+        </AreaChart>
+      </ResponsiveContainer>
+    </StyledSalesChart>
+  );
+}
+
+export default SalesChart;
