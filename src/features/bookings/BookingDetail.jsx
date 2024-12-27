@@ -17,6 +17,7 @@ import { HiArrowUpOnSquare } from "react-icons/hi2";
 import { useDeleteBooking } from "../check-in-out/useDeleting";
 import ConfirmDelete from "../../ui/ConfirmDelete";
 import Modal from "../../ui/Modal";
+import html2pdf  from "html2pdf.js";
 
 const HeadingGroup = styled.div`
   display: flex;
@@ -25,6 +26,10 @@ const HeadingGroup = styled.div`
 `;
 
 function BookingDetail() {
+  async function handelPdf(){
+    const element = document.querySelector('#booking-data-box');
+    html2pdf(element);
+  }
   const {booking, isLoading} = useBooking();
   const navigate = useNavigate();
   const {checkout,isCheckingOut} = useCheckout();
@@ -49,7 +54,7 @@ function BookingDetail() {
         <ButtonText onClick={moveBack}>&larr; Back</ButtonText>
       </Row>
 
-      <BookingDataBox booking={booking} />
+      <BookingDataBox booking={booking} id='booking-data-box'/>
 
       <ButtonGroup>
 
@@ -71,6 +76,8 @@ function BookingDetail() {
             Check out
           </Button>
         )}
+        <Button variation="primary" onClick={handelPdf}>Download pdf</Button>
+        
 
 <Modal>
           <Modal.Open opens="delete">

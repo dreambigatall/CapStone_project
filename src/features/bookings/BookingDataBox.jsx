@@ -7,6 +7,7 @@ import {
   HiOutlineHomeModern,
 } from "react-icons/hi2";
 
+import { html2pdf } from "html2pdf.js";
 import DataItem from "../../ui/DataItem";
 import { Flag } from "../../ui/Flag";
 
@@ -102,7 +103,9 @@ const Footer = styled.footer`
 `;
 
 // A purely presentational component
-function BookingDataBox({ booking }) {
+function BookingDataBox({ booking, id }) {
+     
+
   const {
     created_at,
     startDate,
@@ -120,6 +123,7 @@ function BookingDataBox({ booking }) {
   } = booking;
 
   return (
+    <div id={id}>
     <StyledBookingDataBox>
       <Header>
         <div>
@@ -181,6 +185,7 @@ function BookingDataBox({ booking }) {
         <p>Booked {format(new Date(created_at), "EEE, MMM dd yyyy, p")}</p>
       </Footer>
     </StyledBookingDataBox>
+    </div>
   );
 }
 

@@ -1,406 +1,327 @@
-// import supabase from "../../services/supabase";
+
+
 // import React, { useState, useEffect } from "react";
+// import styled, { ThemeProvider } from "styled-components";
 // import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+// import supabase from "../../services/supabase";
+// import { getCurrentUser } from "../../services/apiAuth";
+// import { useDarkMode } from "../../context/DarkModeContext";
 
-// function ChatApp() {
-//   const queryClient = useQueryClient();
-//   const [message, setMessage] = useState("");
-//   const [editMode, setEditMode] = useState({ active: false, messageId: null });
+// // Light and Dark Themes
+// const lightTheme = {
+//   background: "#f3f4f6",
+//   text: "#374151",
+//   cardBackground: "#ffffff",
+//   border: "#e5e7eb",
+//   primary: "#2563eb",
+//   secondary: "#10b981",
+//   danger: "#ef4444",
+// };
 
-//   // Fetch chat messages
-//   const { data: messages, isLoading, error } = useQuery(["chatMessages"], async () => {
-//     const { data, error } = await supabase
-//       .from("chat")
-//       .select("*")
-//       .order("created_at", { ascending: true });
+// const darkTheme = {
+//   background: "#1f2937",
+//   text: "#d1d5db",
+//   cardBackground: "#374151",
+//   border: "#4b5563",
+//   primary: "#60a5fa",
+//   secondary: "#34d399",
+//   danger: "#f87171",
+// };
 
-//     if (error) throw new Error("Error fetching chat messages: " + error.message);
-//     return data;
-//   });
+// // Styled Components
+// const Container = styled.div`
+//   display: flex;
+//   flex-direction: column;
+//   height: 100vh;
+//   background-color: ${(props) => props.theme.background};
+//   color: ${(props) => props.theme.text};
+// `;
 
-//   // Real-time updates
-//   useEffect(() => {
-//     const subscription = supabase
-//       .channel("public:chat")
-//       .on("postgres_changes", { event: "INSERT", schema: "public", table: "chat" }, (payload) => {
-//         queryClient.setQueryData(["chatMessages"], (oldMessages) => [
-//           ...(oldMessages || []),
-//           payload.new,
-//         ]);
-//       })
-//       .on("postgres_changes", { event: "DELETE", schema: "public", table: "chat" }, (payload) => {
-//         queryClient.setQueryData(["chatMessages"], (oldMessages) =>
-//           (oldMessages || []).filter((msg) => msg.id !== payload.old.id)
-//         );
-//       })
-//       .on("postgres_changes", { event: "UPDATE", schema: "public", table: "chat" }, (payload) => {
-//         queryClient.setQueryData(["chatMessages"], (oldMessages) =>
-//           (oldMessages || []).map((msg) => (msg.id === payload.new.id ? payload.new : msg))
-//         );
-//       })
-//       .subscribe();
+// const Header = styled.header`
+//   text-align: center;
+//   background-color: ${(props) => props.theme.primary};
+//   color: white;
+//   padding: 16px;
+// `;
 
-//     return () => {
-//       supabase.removeChannel(subscription);
-//     };
-//   }, [queryClient]);
+// const Main = styled.main`
+//   flex: 1;
+//   overflow-y: auto;
+//   padding: 16px;
+// `;
 
-//   // Send a message
-//   const sendMessage = useMutation({
-//     mutationFn: async (newMessage) => {
-//       const { data, error } = await supabase
-//         .from("chat")
-//         .insert([{ message: newMessage, user_id: null }])
-//         .select();
+// const MessagesContainer = styled.div`
+//   display: flex;
+//   flex-direction: column;
+//   gap: 16px;
+// `;
 
-//       if (error) throw new Error("Error sending message: " + error.message);
-//       return data;
-//     },
-//     onSuccess: () => {
-//       queryClient.invalidateQueries(["chatMessages"]);
-//     },
-//   });
+// const MessageCard = styled.div`
+//   padding: 16px;
+//   background-color: ${(props) => props.theme.cardBackground};
+//   border: 1px solid ${(props) => props.theme.border};
+//   border-radius: 8px;
+// `;
 
-//   // Edit a message
-//   const editMessage = useMutation({
-//     mutationFn: async ({ id, updatedMessage }) => {
-//       const { data, error } = await supabase
-//         .from("chat")
-//         .update({ message: updatedMessage })
-//         .eq("id", id)
-//         .select();
+// const MessageHeader = styled.div`
+//   display: flex;
+//   justify-content: space-between;
+// `;
 
-//       if (error) throw new Error("Error updating message: " + error.message);
-//       return data;
-//     },
-//     onSuccess: () => {
-//       queryClient.invalidateQueries(["chatMessages"]);
-//     },
-//   });
+// const MessageUser = styled.strong`
+//   color: ${(props) => props.theme.primary};
+// `;
 
-//   // Delete a message
-//   const deleteMessage = useMutation({
-//     mutationFn: async (id) => {
-//       const { error } = await supabase.from("chat").delete().eq("id", id);
-//       if (error) throw new Error("Error deleting message: " + error.message);
-//     },
-//     onSuccess: () => {
-//       queryClient.invalidateQueries(["chatMessages"]);
-//     },
-//   });
+// const MessageActions = styled.div`
+//   display: flex;
+//   gap: 8px;
 
-//   // Handle send message
-//   const handleSendMessage = async (e) => {
-//     e.preventDefault();
-//     if (!message.trim()) return;
+//   button {
+//     font-size: 0.875rem;
+//     cursor: pointer;
+//     background: none;
+//     border: none;
+//     color: ${(props) => props.theme.text};
 
-//     if (editMode.active) {
-//       await editMessage.mutateAsync({ id: editMode.messageId, updatedMessage: message });
-//       setEditMode({ active: false, messageId: null });
-//     } else {
-//       await sendMessage.mutateAsync(message);
+//     &:hover {
+//       text-decoration: underline;
 //     }
 
-//     setMessage(""); // Clear the input field
-//   };
+//     &.edit {
+//       color: ${(props) => props.theme.secondary};
+//     }
 
-//   // Handle edit button click
-//   const handleEdit = (msg) => {
-//     setEditMode({ active: true, messageId: msg.id });
-//     setMessage(msg.message); // Populate the input field with the existing message
-//   };
+//     &.delete {
+//       color: ${(props) => props.theme.danger};
+//     }
 
-//   // Handle delete button click
-//   const handleDelete = async (id) => {
-//     await deleteMessage.mutateAsync(id);
-//   };
+//     &.reply {
+//       color: ${(props) => props.theme.secondary};
+//     }
+//   }
+// `;
 
-//   if (isLoading) return <div className="text-center mt-10">Loading...</div>;
-//   if (error) return <div className="text-center mt-10 text-red-500">Error: {error.message}</div>;
+// const ReplyContext = styled.div`
+//   padding: 8px 12px;
+//   background-color: ${(props) => props.theme.cardBackground};
+//   border-left: 4px solid ${(props) => props.theme.secondary};
+//   border-radius: 4px;
+// `;
 
-//   return (
-//     <div className="flex flex-col h-screen bg-gradient-to-b from-blue-100 to-blue-300">
-//       <header className="text-center bg-blue-600 text-white py-4 shadow-md">
-//         <h1 className="text-2xl font-bold">Annaouncment</h1>
-//       </header>
+// const MessageText = styled.p``;
 
-//       <main className="flex-1 overflow-y-auto p-4">
-//         <div className="space-y-4">
-//           {messages?.map((msg) => (
-//             <div
-//               key={msg.id}
-//               className="p-4 rounded-lg shadow-md bg-white border border-gray-200"
-//             >
-//               <div className="flex justify-between items-center">
-//                 <strong className="text-blue-800">{msg.user_id ? `User ${msg.user_id}` : "Anonymous"}</strong>
-//                 <div className="space-x-2">
-//                   <button
-//                     onClick={() => handleEdit(msg)}
-//                     className="text-sm text-yellow-500 hover:underline"
-//                   >
-//                     Edit
-//                   </button>
-//                   <button
-//                     onClick={() => handleDelete(msg.id)}
-//                     className="text-sm text-red-500 hover:underline"
-//                   >
-//                     Delete
-//                   </button>
-//                 </div>
-//               </div>
-//               <p className="text-gray-800 mt-2">{msg.message}</p>
-//               <small className="text-gray-500">{new Date(msg.created_at).toLocaleString()}</small>
-//             </div>
-//           ))}
-//         </div>
-//       </main>
+// const Footer = styled.footer`
+//   background-color: ${(props) => props.theme.cardBackground};
+//   padding: 16px;
+//   border-top: 1px solid ${(props) => props.theme.border};
+// `;
 
-//       <footer className="sticky bottom-0 bg-white shadow-lg p-4 border-t border-gray-300">
-//         <form onSubmit={handleSendMessage} className="flex">
-//           <input
-//             type="text"
-//             value={message}
-//             onChange={(e) => setMessage(e.target.value)}
-//             placeholder={editMode.active ? "Editing your message..." : "Type your message..."}
-//             className="flex-1 border border-gray-300 rounded-l-lg p-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
-//           />
-//           <button
-//             type="submit"
-//             className="px-6 bg-blue-500 text-white rounded-r-lg hover:bg-blue-600"
-//           >
-//             {editMode.active ? "Update" : "Send"}
-//           </button>
-//         </form>
-//       </footer>
-//     </div>
-//   );
-// }
+// const MessageInputForm = styled.form`
+//   display: flex;
+//   gap: 8px;
+// `;
 
-// export default ChatApp;
+// const MessageInput = styled.input`
+//   flex: 1;
+//   padding: 8px 12px;
+//   border: 1px solid ${(props) => props.theme.border};
+//   border-radius: 8px;
+//   background-color: ${(props) => props.theme.cardBackground};
+//   color: ${(props) => props.theme.text};
+// `;
 
-// import supabase from "../../services/supabase";
-// import React, { useState, useEffect } from "react";
-// import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-// //import { getCurrentUser } from "../../services/auth"; // Import your getCurrentUser function
-// import { getCurrentUser } from "../../services/apiAuth";
+// const SendButton = styled.button`
+//   padding: 8px 16px;
+//   background-color: ${(props) => props.theme.primary};
+//   color: white;
+//   border: none;
+//   border-radius: 8px;
+//   cursor: pointer;
+
+//   &:hover {
+//     background-color: ${(props) => props.theme.primary}cc;
+//   }
+// `;
 
 // function ChatApp() {
 //   const queryClient = useQueryClient();
 //   const [message, setMessage] = useState("");
 //   const [editMode, setEditMode] = useState({ active: false, messageId: null });
-//   const [user, setUser] = useState(null); // Store the authenticated user's details
+//   const [replyTo, setReplyTo] = useState(null);
+//   const [user, setUser] = useState(null);
+//   const { isDarkMode } = useDarkMode();
 
-//   // Fetch the authenticated user on load
+//   const theme = isDarkMode ? darkTheme : lightTheme;
+
 //   useEffect(() => {
 //     async function fetchUser() {
-//       try {
-//         const currentUser = await getCurrentUser();
-//         setUser(currentUser); // Save the user object (id and fullName) in state
-//       } catch (error) {
-//         console.error("Failed to fetch user:", error.message);
-//       }
+//       const currentUser = await getCurrentUser();
+//       setUser(currentUser);
 //     }
 //     fetchUser();
 //   }, []);
 
-//   // Fetch chat messages
 //   const { data: messages, isLoading, error } = useQuery(["chatMessages"], async () => {
-//     const { data, error } = await supabase
+//     const { data } = await supabase
 //       .from("chat")
 //       .select("*")
 //       .order("created_at", { ascending: true });
-
-//     if (error) throw new Error("Error fetching chat messages: " + error.message);
 //     return data;
 //   });
 
-//   // Real-time updates
-//   useEffect(() => {
-//     const subscription = supabase
-//       .channel("public:chat")
-//       .on("postgres_changes", { event: "INSERT", schema: "public", table: "chat" }, (payload) => {
-//         queryClient.setQueryData(["chatMessages"], (oldMessages) => [
-//           ...(oldMessages || []),
-//           payload.new,
-//         ]);
-//       })
-//       .on("postgres_changes", { event: "DELETE", schema: "public", table: "chat" }, (payload) => {
-//         queryClient.setQueryData(["chatMessages"], (oldMessages) =>
-//           (oldMessages || []).filter((msg) => msg.id !== payload.old.id)
-//         );
-//       })
-//       .on("postgres_changes", { event: "UPDATE", schema: "public", table: "chat" }, (payload) => {
-//         queryClient.setQueryData(["chatMessages"], (oldMessages) =>
-//           (oldMessages || []).map((msg) => (msg.id === payload.new.id ? payload.new : msg))
-//         );
-//       })
-//       .subscribe();
-
-//     return () => {
-//       supabase.removeChannel(subscription);
-//     };
-//   }, [queryClient]);
-
-//   // Send a message
 //   const sendMessage = useMutation({
 //     mutationFn: async (newMessage) => {
-//       const { data, error } = await supabase
-//         .from("chat")
-//         .insert([{ message: newMessage, user_id: user?.id, user_name: user?.user_metadata?.fullName }]) // Include user_id and user_name
-//         .select();
-
-//       if (error) throw new Error("Error sending message: " + error.message);
-//       return data;
+//       await supabase.from("chat").insert({
+//         message: newMessage,
+//         user_id: user?.id,
+//         user_name: user?.user_metadata?.fullName,
+//         reply_to: replyTo?.id || null,
+//       });
 //     },
-//     onSuccess: () => {
-//       queryClient.invalidateQueries(["chatMessages"]);
-//     },
+//     onSuccess: () => queryClient.invalidateQueries(["chatMessages"]),
 //   });
 
-//   // Edit a message
 //   const editMessage = useMutation({
 //     mutationFn: async ({ id, updatedMessage }) => {
-//       const { data, error } = await supabase
-//         .from("chat")
-//         .update({ message: updatedMessage })
-//         .eq("id", id)
-//         .select();
-
-//       if (error) throw new Error("Error updating message: " + error.message);
-//       return data;
+//       await supabase.from("chat").update({ message: updatedMessage }).eq("id", id);
 //     },
-//     onSuccess: () => {
-//       queryClient.invalidateQueries(["chatMessages"]);
-//     },
+//     onSuccess: () => queryClient.invalidateQueries(["chatMessages"]),
 //   });
 
-//   // Delete a message
 //   const deleteMessage = useMutation({
 //     mutationFn: async (id) => {
-//       const { error } = await supabase.from("chat").delete().eq("id", id);
-//       if (error) throw new Error("Error deleting message: " + error.message);
+//       await supabase.from("chat").delete().eq("id", id);
 //     },
-//     onSuccess: () => {
-//       queryClient.invalidateQueries(["chatMessages"]);
-//     },
+//     onSuccess: () => queryClient.invalidateQueries(["chatMessages"]),
 //   });
 
-//   // Handle send message
-//   const handleSendMessage = async (e) => {
+//   const handleSendMessage = (e) => {
 //     e.preventDefault();
-//     if (!message.trim()) return;
-
 //     if (editMode.active) {
-//       await editMessage.mutateAsync({ id: editMode.messageId, updatedMessage: message });
+//       editMessage.mutate({ id: editMode.messageId, updatedMessage: message });
 //       setEditMode({ active: false, messageId: null });
 //     } else {
-//       await sendMessage.mutateAsync(message);
+//       sendMessage.mutate(message);
 //     }
-
-//     setMessage(""); // Clear the input field
+//     setMessage("");
+//     setReplyTo(null);
 //   };
 
-//   // Handle edit button click
+//   const handleReply = (msg) => {
+//     setReplyTo(msg);
+//     setMessage(`@${msg.user_name} `);
+//   };
+
 //   const handleEdit = (msg) => {
 //     setEditMode({ active: true, messageId: msg.id });
-//     setMessage(msg.message); // Populate the input field with the existing message
+//     setMessage(msg.message);
 //   };
 
-//   // Handle delete button click
-//   const handleDelete = async (id) => {
-//     await deleteMessage.mutateAsync(id);
+//   const handleDelete = (id) => {
+//     deleteMessage.mutate(id);
 //   };
 
 //   if (isLoading) return <div>Loading...</div>;
 //   if (error) return <div>Error: {error.message}</div>;
 
 //   return (
-//     <div className="flex flex-col h-screen bg-gradient-to-b from-blue-100 to-blue-300">
-//       <header className="text-center bg-blue-600 text-white py-4 shadow-md">
-//         <h1 className="text-2xl font-bold">Chat Application</h1>
-//       </header>
-
-//       <main className="flex-1 overflow-y-auto p-4">
-//         <div className="space-y-4">
-//           {messages?.map((msg) => (
-//             <div
-//               key={msg.id}
-//               className="p-4 rounded-lg shadow-md bg-white border border-gray-200"
-//             >
-//               <div className="flex justify-between items-center">
-//                 <strong className="text-blue-800">
-//                   {msg.user_name ? msg.user_name : "Anonymous"}
-//                 </strong>
-//                 <div className="space-x-2">
-//                   {msg.user_id === user?.id && ( // Only allow edit/delete for the logged-in user's messages
-//                     <>
-//                       <button
-//                         onClick={() => handleEdit(msg)}
-//                         className="text-sm text-yellow-500 hover:underline"
-//                       >
-//                         Edit
-//                       </button>
-//                       <button
-//                         onClick={() => handleDelete(msg.id)}
-//                         className="text-sm text-red-500 hover:underline"
-//                       >
-//                         Delete
-//                       </button>
-//                     </>
-//                   )}
-//                 </div>
-//               </div>
-//               <p className="text-gray-800 mt-2">{msg.message}</p>
-//               <small className="text-gray-500">{new Date(msg.created_at).toLocaleString()}</small>
-//             </div>
-//           ))}
-//         </div>
-//       </main>
-
-//       <footer className="sticky bottom-0 bg-white shadow-lg p-4 border-t border-gray-300">
-//         <form onSubmit={handleSendMessage} className="flex">
-//           <input
-//             type="text"
-//             value={message}
-//             onChange={(e) => setMessage(e.target.value)}
-//             placeholder={editMode.active ? "Editing your message..." : "Type your message..."}
-//             className="flex-1 border border-gray-300 rounded-l-lg p-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
-//           />
-//           <button
-//             type="submit"
-//             className="px-6 bg-blue-500 text-white rounded-r-lg hover:bg-blue-600"
-//           >
-//             {editMode.active ? "Update" : "Send"}
-//           </button>
-//         </form>
-//       </footer>
-//     </div>
+//     <ThemeProvider theme={theme}>
+//       <Container>
+//         <Header>Chat App</Header>
+//         <Main>
+//           <MessagesContainer>
+//             {messages.map((msg) => (
+//               <MessageCard key={msg.id}>
+//                 <MessageHeader>
+//                   <MessageUser>{msg.user_name || "Anonymous"}</MessageUser>
+//                   <MessageActions>
+//                     {msg.user_id === user?.id && (
+//                       <>
+//                         <button className="edit" onClick={() => handleEdit(msg)}>
+//                           Edit
+//                         </button>
+//                         <button className="delete" onClick={() => handleDelete(msg.id)}>
+//                           Delete
+//                         </button>
+//                       </>
+//                     )}
+//                     <button className="reply" onClick={() => handleReply(msg)}>
+//                       Reply
+//                     </button>
+//                   </MessageActions>
+//                 </MessageHeader>
+//                 {msg.reply_to && (
+//                   <ReplyContext>
+//                     Replying to:{" "}
+//                     {messages.find((m) => m.id === msg.reply_to)?.message || "Deleted message"}
+//                   </ReplyContext>
+//                 )}
+//                 <MessageText>{msg.message}</MessageText>
+//               </MessageCard>
+//             ))}
+//           </MessagesContainer>
+//         </Main>
+//         <Footer>
+//           <MessageInputForm onSubmit={handleSendMessage}>
+//             {replyTo && <ReplyContext>Replying to: {replyTo.message}</ReplyContext>}
+//             <MessageInput
+//               type="text"
+//               value={message}
+//               onChange={(e) => setMessage(e.target.value)}
+//               placeholder="Type your message..."
+//             />
+//             <SendButton type="submit">{editMode.active ? "Update" : "Send"}</SendButton>
+//           </MessageInputForm>
+//         </Footer>
+//       </Container>
+//     </ThemeProvider>
 //   );
 // }
 
 // export default ChatApp;
 
 import React, { useState, useEffect } from "react";
-import styled from "styled-components";
+import styled, { ThemeProvider } from "styled-components";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import supabase from "../../services/supabase";
 import { getCurrentUser } from "../../services/apiAuth";
-import Menus from "../../ui/Menus";
-import Modal from "../../ui/Modal";
+import { useDarkMode } from "../../context/DarkModeContext";
 
+// Light and Dark Themes
+const lightTheme = {
+  background: "#f3f4f6",
+  text: "#374151",
+  cardBackground: "#ffffff",
+  border: "#e5e7eb",
+  primary: "#2563eb",
+  secondary: "#10b981",
+  danger: "#ef4444",
+};
+
+const darkTheme = {
+  background: "#1f2937",
+  text: "#d1d5db",
+  cardBackground: "#374151",
+  border: "#4b5563",
+  primary: "#60a5fa",
+  secondary: "#34d399",
+  danger: "#f87171",
+};
+
+// Styled Components
 const Container = styled.div`
   display: flex;
   flex-direction: column;
   height: 100vh;
-  background: linear-gradient(to bottom, #cce4f6, #a3d9f8);
+  background-color: ${(props) => props.theme.background};
+  color: ${(props) => props.theme.text};
 `;
 
 const Header = styled.header`
   text-align: center;
-  background-color: #2563eb;
+  background-color: ${(props) => props.theme.primary};
   color: white;
   padding: 16px;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 `;
 
 const Main = styled.main`
@@ -417,20 +338,18 @@ const MessagesContainer = styled.div`
 
 const MessageCard = styled.div`
   padding: 16px;
-  background-color: white;
-  border: 1px solid #e5e7eb;
+  background-color: ${(props) => props.theme.cardBackground};
+  border: 1px solid ${(props) => props.theme.border};
   border-radius: 8px;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 `;
 
 const MessageHeader = styled.div`
   display: flex;
   justify-content: space-between;
-  align-items: center;
 `;
 
 const MessageUser = styled.strong`
-  color: #1e40af;
+  color: ${(props) => props.theme.primary};
 `;
 
 const MessageActions = styled.div`
@@ -440,87 +359,68 @@ const MessageActions = styled.div`
   button {
     font-size: 0.875rem;
     cursor: pointer;
+    background: none;
+    border: none;
+    color: ${(props) => props.theme.text};
+
     &:hover {
       text-decoration: underline;
     }
-  }
 
-  .edit {
-    color: #f59e0b;
-  }
+    &.edit {
+      color: ${(props) => props.theme.secondary};
+    }
 
-  .delete {
-    color: #ef4444;
-  }
+    &.delete {
+      color: ${(props) => props.theme.danger};
+    }
 
-  .reply {
-    color: #10b981;
+    &.reply {
+      color: ${(props) => props.theme.secondary};
+    }
   }
 `;
 
 const ReplyContext = styled.div`
   padding: 8px 12px;
-  margin-bottom: 8px;
-  background-color: #e5f5f9;
-  border-left: 4px solid #10b981;
+  background-color: ${(props) => props.theme.cardBackground};
+  border-left: 4px solid ${(props) => props.theme.secondary};
   border-radius: 4px;
-
-  span {
-    font-weight: bold;
-    color: #064e3b;
-  }
-
-  p {
-    margin: 0;
-    color: #374151;
-  }
+  margin-bottom: 8px;
 `;
 
-const MessageText = styled.p`
-  margin-top: 8px;
-  color: #374151;
-`;
-
-const MessageTimestamp = styled.small`
-  color: #6b7280;
-`;
+const MessageText = styled.p``;
 
 const Footer = styled.footer`
-  background-color: white;
+  background-color: ${(props) => props.theme.cardBackground};
   padding: 16px;
-  border-top: 1px solid #e5e7eb;
-  box-shadow: 0 -2px 4px rgba(0, 0, 0, 0.1);
+  border-top: 1px solid ${(props) => props.theme.border};
 `;
 
 const MessageInputForm = styled.form`
   display: flex;
-  flex-direction: column;
   gap: 8px;
 `;
 
 const MessageInput = styled.input`
   flex: 1;
   padding: 8px 12px;
-  border: 1px solid #e5e7eb;
+  border: 1px solid ${(props) => props.theme.border};
   border-radius: 8px;
-  outline: none;
-  &:focus {
-    border-color: #2563eb;
-    box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.2);
-  }
+  background-color: ${(props) => props.theme.cardBackground};
+  color: ${(props) => props.theme.text};
 `;
 
 const SendButton = styled.button`
-  padding: 8px 24px;
-  background-color: #2563eb;
+  padding: 8px 16px;
+  background-color: ${(props) => props.theme.primary};
   color: white;
   border: none;
   border-radius: 8px;
   cursor: pointer;
-  transition: background-color 0.3s;
 
   &:hover {
-    background-color: #1e3a8a;
+    background-color: ${(props) => props.theme.primary}cc;
   }
 `;
 
@@ -528,223 +428,139 @@ function ChatApp() {
   const queryClient = useQueryClient();
   const [message, setMessage] = useState("");
   const [editMode, setEditMode] = useState({ active: false, messageId: null });
-  const [replyTo, setReplyTo] = useState(null); // Track the message being replied to
-  const [user, setUser] = useState(null); // Store the authenticated user's details
+  const [replyTo, setReplyTo] = useState(null);
+  const [user, setUser] = useState(null);
+  const { isDarkMode } = useDarkMode();
 
-  // Fetch the authenticated user on load
+  const theme = isDarkMode ? darkTheme : lightTheme;
+
   useEffect(() => {
     async function fetchUser() {
-      try {
-        const currentUser = await getCurrentUser();
-        setUser(currentUser); // Save the user object (id and fullName) in state
-      } catch (error) {
-        console.error("Failed to fetch user:", error.message);
-      }
+      const currentUser = await getCurrentUser();
+      setUser(currentUser);
     }
     fetchUser();
   }, []);
 
-  // Fetch chat messages
   const { data: messages, isLoading, error } = useQuery(["chatMessages"], async () => {
-    const { data, error } = await supabase
+    const { data } = await supabase
       .from("chat")
       .select("*")
       .order("created_at", { ascending: true });
-
-    if (error) throw new Error("Error fetching chat messages: " + error.message);
     return data;
   });
 
-  // Real-time updates
-  useEffect(() => {
-    const subscription = supabase
-      .channel("public:chat")
-      .on("postgres_changes", { event: "INSERT", schema: "public", table: "chat" }, (payload) => {
-        queryClient.setQueryData(["chatMessages"], (oldMessages) => [
-          ...(oldMessages || []),
-          payload.new,
-        ]);
-      })
-      .on("postgres_changes", { event: "DELETE", schema: "public", table: "chat" }, (payload) => {
-        queryClient.setQueryData(["chatMessages"], (oldMessages) =>
-          (oldMessages || []).filter((msg) => msg.id !== payload.old.id)
-        );
-      })
-      .on("postgres_changes", { event: "UPDATE", schema: "public", table: "chat" }, (payload) => {
-        queryClient.setQueryData(["chatMessages"], (oldMessages) =>
-          (oldMessages || []).map((msg) => (msg.id === payload.new.id ? payload.new : msg))
-        );
-      })
-      .subscribe();
-
-    return () => {
-      supabase.removeChannel(subscription);
-    };
-  }, [queryClient]);
-
-  // Send a message
   const sendMessage = useMutation({
     mutationFn: async (newMessage) => {
-      const { data, error } = await supabase
-        .from("chat")
-        .insert([
-          {
-            message: newMessage,
-            user_id: user?.id,
-            user_name: user?.user_metadata?.fullName,
-            reply_to: replyTo ? replyTo.id : null, // Include replyTo ID if applicable
-          },
-        ]);
-
-      if (error) throw new Error("Error sending message: " + error.message);
-      return data;
+      await supabase.from("chat").insert({
+        message: newMessage,
+        user_id: user?.id,
+        user_name: user?.user_metadata?.fullName,
+        reply_to: replyTo?.id || null,
+      });
     },
-    onSuccess: () => {
-      queryClient.invalidateQueries(["chatMessages"]);
-    },
+    onSuccess: () => queryClient.invalidateQueries(["chatMessages"]),
   });
 
-  // Edit a message
   const editMessage = useMutation({
     mutationFn: async ({ id, updatedMessage }) => {
-      const { data, error } = await supabase
-        .from("chat")
-        .update({ message: updatedMessage })
-        .eq("id", id);
-
-      if (error) throw new Error("Error updating message: " + error.message);
-      return data;
+      await supabase.from("chat").update({ message: updatedMessage }).eq("id", id);
     },
-    onSuccess: () => {
-      queryClient.invalidateQueries(["chatMessages"]);
-    },
+    onSuccess: () => queryClient.invalidateQueries(["chatMessages"]),
   });
 
-  // Delete a message
   const deleteMessage = useMutation({
     mutationFn: async (id) => {
-      const { error } = await supabase.from("chat").delete().eq("id", id);
-      if (error) throw new Error("Error deleting message: " + error.message);
+      await supabase.from("chat").delete().eq("id", id);
     },
-    onSuccess: () => {
-      queryClient.invalidateQueries(["chatMessages"]);
-    },
+    onSuccess: () => queryClient.invalidateQueries(["chatMessages"]),
   });
 
-  // Handle send message
-  const handleSendMessage = async (e) => {
+  const handleSendMessage = (e) => {
     e.preventDefault();
-    if (!message.trim()) return;
-
     if (editMode.active) {
-      await editMessage.mutateAsync({ id: editMode.messageId, updatedMessage: message });
+      editMessage.mutate({ id: editMode.messageId, updatedMessage: message });
       setEditMode({ active: false, messageId: null });
     } else {
-      await sendMessage.mutateAsync(message);
+      sendMessage.mutate(message);
     }
-
-    setMessage(""); // Clear the input field
-    //setReplyTo(null); // Clear the reply context
+    setMessage("");
+    setReplyTo(null);
   };
 
-  // Handle reply button click
   const handleReply = (msg) => {
     setReplyTo(msg);
-    setMessage(`@${msg.user_name} `); // Pre-fill input with username mention
+    setMessage(`@${msg.user_name} `);
   };
 
-  // Handle edit button click
   const handleEdit = (msg) => {
     setEditMode({ active: true, messageId: msg.id });
-    setMessage(msg.message); // Populate the input field with the existing message
+    setMessage(msg.message);
   };
 
-  // Handle delete button click
-  const handleDelete = async (id) => {
-    await deleteMessage.mutateAsync(id);
+  const handleDelete = (id) => {
+    deleteMessage.mutate(id);
   };
 
   if (isLoading) return <div>Loading...</div>;
   if (error) return <div>Error: {error.message}</div>;
 
   return (
-    
-    <Container>
-      <Header>
-        <h1>Annaouncement</h1>
-      </Header>
+    <ThemeProvider theme={theme}>
+      <Container>
+        <Header>Announcement</Header>
+        <Main>
+          <MessagesContainer>
+            {messages.map((msg) => {
+              const originalMessage = messages.find((m) => m.id === msg.reply_to);
 
-      <Main>
-        <MessagesContainer>
-          {messages?.map((msg) => (
-            <MessageCard key={msg.id}>
-              <MessageHeader>
-                <MessageUser>
-                  {msg.user_name ? msg.user_name : "Anonymous"}
-                </MessageUser>
-                <MessageActions>
-                  
-                    
-                  {msg.user_id === user?.id && (
-                    
-                    <>
-                    
-                      <button onClick={() => handleEdit(msg)} className="edit">
-                        Edit
+              return (
+                <MessageCard key={msg.id}>
+                  <MessageHeader>
+                    <MessageUser>{msg.user_name || "Anonymous"}</MessageUser>
+                    <MessageActions>
+                      {msg.user_id === user?.id && (
+                        <>
+                          <button className="edit" onClick={() => handleEdit(msg)}>
+                            Edit
+                          </button>
+                          <button className="delete" onClick={() => handleDelete(msg.id)}>
+                            Delete
+                          </button>
+                        </>
+                      )}
+                      <button className="reply" onClick={() => handleReply(msg)}>
+                        Reply
                       </button>
-                      <button onClick={() => handleDelete(msg.id)} className="delete">
-                        Delete
-                      </button>
-                    </>
+                    </MessageActions>
+                  </MessageHeader>
+                  {originalMessage && (
+                    <ReplyContext>
+                      Replying to:{" "}
+                      <strong>{originalMessage.user_name || "Anonymous"}:</strong>{" "}
+                      {originalMessage.message}
+                    </ReplyContext>
                   )}
-                  <button onClick={() => handleReply(msg)} className="reply">
-                    Reply
-                  </button>
-                 
-                 
-                </MessageActions>
-              </MessageHeader>
-              {msg.reply_to && (
-                <ReplyContext>
-                  <span>Replying to:</span>
-                  <p>{messages.find((m) => m.id === msg.reply_to)?.message || "Unknown message "}</p>
-                </ReplyContext>
-              )}
-              
-              <MessageText>{msg.message}</MessageText>
-              <MessageTimestamp>
-                {new Date(msg.created_at).toLocaleString()}
-              </MessageTimestamp>
-            </MessageCard>
-          ))}
-        </MessagesContainer>
-      </Main>
-
-      <Footer>
-        <MessageInputForm onSubmit={handleSendMessage}>
-          {replyTo && (
-            <ReplyContext>
-              <span>Replying to {replyTo.user_name}:</span>
-              <p>{replyTo.message}</p>
-            </ReplyContext>
-          )}
-          <MessageInput
-            type="text"
-            value={message}
-            onChange={(e) => setMessage(e.target.value)}
-            placeholder={
-              editMode.active
-                ? "Editing your message..."
-                : replyTo
-                ? "Replying..."
-                : "Type your message..."
-            }
-          />
-          <SendButton type="submit">{editMode.active ? "Update" : "Send"}</SendButton>
-        </MessageInputForm>
-      </Footer>
-    </Container>
-    
+                  <MessageText>{msg.message}</MessageText>
+                </MessageCard>
+              );
+            })}
+          </MessagesContainer>
+        </Main>
+        <Footer>
+          <MessageInputForm onSubmit={handleSendMessage}>
+            {replyTo && <ReplyContext>Replying to: {replyTo.message}</ReplyContext>}
+            <MessageInput
+              type="text"
+              value={message}
+              onChange={(e) => setMessage(e.target.value)}
+              placeholder="Type your message..."
+            />
+            <SendButton type="submit">{editMode.active ? "Update" : "Send"}</SendButton>
+          </MessageInputForm>
+        </Footer>
+      </Container>
+    </ThemeProvider>
   );
 }
 
