@@ -175,7 +175,7 @@ function CheckinBooking() {
             }}
             id="breakfast"
           >
-            Want to add breakfast for {formatCurrency(optionalBreakfastPrice)}?
+            Want to add driver for {formatCurrency(optionalBreakfastPrice)}?
           </Checkbox>
         </Box>
       )}

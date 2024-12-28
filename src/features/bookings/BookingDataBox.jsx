@@ -5,6 +5,7 @@ import {
   HiOutlineCheckCircle,
   HiOutlineCurrencyDollar,
   HiOutlineHomeModern,
+  HiOutlineTruck,
 } from "react-icons/hi2";
 
 import { html2pdf } from "html2pdf.js";
@@ -127,9 +128,9 @@ function BookingDataBox({ booking, id }) {
     <StyledBookingDataBox>
       <Header>
         <div>
-          <HiOutlineHomeModern />
+          <HiOutlineTruck />
           <p>
-            {numNights} nights in Cabin <span>{cabinName}</span>
+            {numNights} days with coustomer <span>{cabinName}</span>
           </p>
         </div>
 
@@ -163,7 +164,7 @@ function BookingDataBox({ booking, id }) {
           </DataItem>
         )}
 
-        <DataItem icon={<HiOutlineCheckCircle />} label="Breakfast included?">
+        <DataItem icon={<HiOutlineCheckCircle />} label="Driver included?">
           {hasBreakfast ? "Yes" : "No"}
         </DataItem>
 
@@ -172,9 +173,9 @@ function BookingDataBox({ booking, id }) {
             {formatCurrency(totalPrice)}
 
             {hasBreakfast &&
-              ` (${formatCurrency(cabinPrice)} cabin + ${formatCurrency(
+              ` (${formatCurrency(cabinPrice)} Truck + ${formatCurrency(
                 extrasPrice
-              )} breakfast)`}
+              )} driver)`}
           </DataItem>
 
           <p>{isPaid ? "Paid" : "Will pay at property"}</p>
