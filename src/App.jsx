@@ -33,7 +33,7 @@ function App() {
       
 
     <GlobalStyles/>
-   <BrowserRouter>
+   <BrowserRouter basename="/CapStone_project">
      <Routes>
       
       <Route
