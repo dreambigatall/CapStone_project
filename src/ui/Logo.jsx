@@ -13,7 +13,7 @@ function Logo() {
   return (
     <StyledLogo>
       <Link to="/">
-      <Img src="/xxs.png" alt="Logo" />
+      <Img src="https://znikiymccixmabrhrcux.supabase.co/storage/v1/object/public/storage//xxs.png" alt="Logo" />
       </Link>
     </StyledLogo>
   );
